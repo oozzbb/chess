@@ -4,8 +4,8 @@ VERSION:= $(shell python -c "from src import version; print(version.VERSION) ")
 build: dist/chess-$(VERSION).exe dist/chess.exe
 	-
 
-# FLAGS+= -F
-# FLAGS+= -w
+FLAGS+= -F
+FLAGS+= -w
 FLAGS+= --name chess-$(VERSION)
 
 dist/chess-$(VERSION).exe: src/main.py

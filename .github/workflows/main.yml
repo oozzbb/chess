@@ -1,0 +1,74 @@
+name: Build Project
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master, dev ]
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
+    
+#    runs-on: ubuntu-latest  # 或 windows-latest / macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  # 替换成你的 Python 版本
+
+      - name: Install dependencies
+        run: |
+          pip install numpy keyboard pyinstaller PySide6
+
+      - name: Install make (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: sudo apt-get install -y make  # macOS 默认自带 make
+
+      - name: Install make (Windows)
+        if: runner.os == 'Windows'
+        run: choco install make -y
+        
+      - name: Run make build
+        run: make build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: chess-build
+          path: dist/
+
+  release:
+    needs: build  # 依赖 build 任务
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: chess-build
+          path: dist/
+      - name: Verify files exist
+        run: |
+          ls -la dist/
+          if [ ! -f dist/chess-*.exe ]; then
+            echo "Error: chess-*.exe not found!"
+            exit 1
+          fi
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}  # 使用触发工作流的 tag（如 v1.0.0）
+          name: Chess ${{ github.ref_name }}
+          body: "Automated release of Chess ${{ github.ref_name }}"
+          files: |
+            dist/chess-*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动使用 GitHub Token

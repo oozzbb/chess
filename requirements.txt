@@ -1,0 +1,8 @@
+numpy>=1.26.0
+PySide6
+pygame
+matplotlib
+opencv-python
+torch
+pywin32
+pyinstaller

@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install numpy keyboard pyinstaller PySide6
+          pip install -r requirements.txt
 
       - name: Install make (Linux/macOS)
         if: runner.os != 'Windows'
